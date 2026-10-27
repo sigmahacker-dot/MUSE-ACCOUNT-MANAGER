@@ -1,4 +1,5 @@
-__pycache__/
-*.py[cod]
-accounts.json
-accounts-export.csv
+node_modules/
+.env
+auth_info_baileys/
+*.log
+.DS_Store
