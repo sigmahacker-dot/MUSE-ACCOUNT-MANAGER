@@ -40,7 +40,15 @@ async function startBot() {
         console.error("Check PAIRING_NUMBER format and try again.");
       }
     }
-    if (connection === "open") console.log("\n✅ " + BOT_NAME + " connected. Loaded " + plugins.length + " plugins.");
+    if (connection === "open") {
+      console.log("\n✨ " + BOT_NAME + " CONNECTED — " + plugins.length + " plugins loaded. Type .menu.");
+      const owner = process.env.OWNER_JID || "";
+      if (owner && !globalThis.sigmaOwnerWelcomeSent) {
+        globalThis.sigmaOwnerWelcomeSent = true;
+        const welcome = "╭━━〔 SIGMA MD BOT 〕━━╮\n│ ✅ PAIRING SUCCESSFUL\n│ Bot is connected!\n│ Commands: .menu\n│ TTS: .tts hello\n│ YouTube: .ytmp3 URL / .ytmp4 URL\n╰━━━━━━━━━━━━━━━━━━━━╯\nKeep your session private.";
+        try { await sock.sendMessage(owner, { text: welcome }); } catch (e) { console.error("Owner welcome failed:", e.message); }
+      }
+    }
     if (connection === "close") {\n      globalThis.sigmaOwnerWelcomeSent = false;
       const code = lastDisconnect?.error?.output?.statusCode;
       const reconnect = code !== DisconnectReason.loggedOut;
