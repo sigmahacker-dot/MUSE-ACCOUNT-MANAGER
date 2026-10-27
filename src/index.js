@@ -1,0 +1,59 @@
+require("dotenv").config();
+const pino = require("pino");
+const readline = require("readline");
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
+const plugins = require("./plugins");
+const { handleMessage } = require("./router");
+
+const logger = pino({ level: process.env.LOG_LEVEL || "silent" });
+const BOT_NAME = process.env.BOT_NAME || "SIGMA MD BOT";
+const PAIRING_NUMBER = (process.env.PAIRING_NUMBER || "").replace(/[^0-9]/g, "");
+
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+  let version;
+  try { version = (await fetchLatestBaileysVersion()).version; } catch {}
+  const sock = makeWASocket({
+    version, auth: state, logger, printQRInTerminal: false,
+    browser: [BOT_NAME, "Chrome", "1.0.0"],
+    markOnlineOnConnect: false, syncFullHistory: false
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("connection.update", async ({ connection, lastDisconnect }) => {
+    if (!state.creds.registered && PAIRING_NUMBER && !globalThis.sigmaPairCodeRequested) {
+      globalThis.sigmaPairCodeRequested = true;
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        const code = await sock.requestPairingCode(PAIRING_NUMBER);
+        console.log("\n==================================");
+        console.log(BOT_NAME + " — WHATSAPP PAIRING CODE");
+        console.log("Your code: " + code);
+        console.log("WhatsApp → Linked devices → Link with phone number instead");
+        console.log("Never share this code with anyone.");
+        console.log("==================================\n");
+      } catch (err) {
+        globalThis.sigmaPairCodeRequested = false;
+        console.error("Could not request pairing code:", err?.message || err);
+        console.error("Check PAIRING_NUMBER format and try again.");
+      }
+    }
+    if (connection === "open") console.log("\n✅ " + BOT_NAME + " connected. Loaded " + plugins.length + " plugins.");
+    if (connection === "close") {
+      const code = lastDisconnect?.error?.output?.statusCode;
+      const reconnect = code !== DisconnectReason.loggedOut;
+      console.log("Connection closed.", reconnect ? "Reconnecting…" : "Logged out; remove auth_info_baileys and pair again.");
+      if (reconnect) setTimeout(() => { globalThis.sigmaPairCodeRequested = false; startBot(); }, 2500);
+    }
+  });
+
+  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify") return;
+    for (const msg of messages) {
+      try { await handleMessage(sock, msg, plugins); }
+      catch (err) { console.error("Message handler error:", err?.message || err); }
+    }
+  });
+}
+startBot().catch(err => { console.error("Startup failed:", err); process.exitCode = 1; });
