@@ -1,53 +1,37 @@
 # SIGMA MD BOT
 
-Modular WhatsApp bot starter for Android Termux with **phone-number pairing code**, command plugins, group moderation helpers, and a safe localhost-only security lab.
+Termux-first modular WhatsApp bot using a phone-number pairing code.
 
-> **Compatibility notice:** Baileys is an unofficial WhatsApp Web library. WhatsApp can change its protocol and unofficial use may cause restrictions or bans. Use only a number you own and follow WhatsApp's terms. For business-critical messaging, prefer the official WhatsApp Business Platform (which uses a different onboarding flow).
+> Baileys is an unofficial WhatsApp Web library. Unofficial use can lead to restrictions. Use your own account, keep pairing/session credentials private, and follow WhatsApp's terms. Media commands are for content you own or have permission to download.
 
-## Install on Termux
+## Termux install
 
-```bash
-pkg update -y
-pkg upgrade -y
-pkg install nodejs-lts git -y
+~~~sh
+pkg update -y && pkg upgrade -y
+pkg install nodejs-lts git python ffmpeg -y
+python -m pip install -U yt-dlp
 git clone https://github.com/sigmahacker-dot/MUSE-ACCOUNT-MANAGER.git
 cd MUSE-ACCOUNT-MANAGER
 npm install
 cp .env.example .env
 nano .env
 npm start
-```
+~~~
 
-Set `PAIRING_NUMBER` in `.env` to your own number in international format with digits only, e.g. `923001234567` (no plus sign or spaces). Start the bot; it prints a pairing code. In WhatsApp go to **Linked devices → Link a device → Link with phone number instead**, then enter the code. Availability of this option depends on the WhatsApp client/version. Do not share the code or session folder.
+Set PAIRING_NUMBER to your own international number, digits only. Enter the printed code in WhatsApp → Linked devices → Link a device → Link with phone number instead.
 
 ## Commands
 
-- `.menu` / `.help`
-- `.ping`, `.about`, `.time`, `.owner`, `.plugins`
-- `.groupinfo` (group only)
-- `.kick @member`, `.promote @member` (group admin only)
-- `.labhelp`
+Core: .menu, .help, .commands, .ping, .about, .time, .owner, .plugins
 
-## Safe local lab
+Groups: .groupinfo, .kick @member, .promote @member, .welcome, .rules. New members get a styled greeting; set WELCOME=false to disable.
 
-Terminal 1:
-```bash
-npm run lab
-```
-Terminal 2:
-```bash
-node lab/local-lab.js --check
-```
+Media: .tts [en/ur/hi/ar/fr/es] text; .ytmp3 URL; .ytmp4 URL. YouTube commands require yt-dlp; audio extraction requires ffmpeg. Video/audio uploads are capped at 15 MB. Site/library changes can affect compatibility.
 
-The lab listens only on `127.0.0.1` and checks its own endpoint. Do not use it to target third-party systems. No crash attacks, malware, unsolicited mass messaging, or account-abuse features are included.
+Developer: .bugreport Short title | detailed description. Configure GITHUB_TOKEN and GITHUB_REPOSITORY=owner/repo. Use a fine-grained token scoped only to Issues read/write on the intended repository. Never share or commit the token.
 
-## Plugin architecture
+Local lab: npm run lab, then node lab/local-lab.js --check. It is localhost-only, not an attack tool.
 
-Add commands as small modules in `src/plugins/`, then register them in `src/plugins/index.js`. This starter is **not 1,000 fully implemented commands yet**; it provides a scalable structure for adding more.
+## Notes
 
-## Security
-
-- Never commit `.env`, `auth_info_baileys/`, pairing codes, or session credentials.
-- If your session is exposed, unlink the device in WhatsApp immediately.
-- Termux on Android is not guaranteed to run 24/7 because battery management may stop background processes.
-- This bot does not create WhatsApp accounts or phone numbers.
+This is a modular base, not a claim that 1,000+ commands are all implemented. Silva MD archive has many plugins that need individual security and compatibility review before integration. The provided BugBot archive is a Slack-to-GitHub issue bot, so its issue-reporting workflow is implemented as .bugreport rather than importing its old Slack runtime into WhatsApp.
