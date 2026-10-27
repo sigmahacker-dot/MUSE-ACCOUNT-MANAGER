@@ -1,1 +1,1 @@
-module.exports = [...require("./core"), ...require("./groups"), ...require("./lab")];
+module.exports = [...require("./core"), ...require("./groups"), ...require("./lab"), ...require("./media"), ...require("./welcome"), require("./bugreport")];
