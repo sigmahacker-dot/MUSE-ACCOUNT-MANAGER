@@ -1,9 +1,9 @@
 require("dotenv").config();
 const pino = require("pino");
-const readline = require("readline");
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require("@whiskeysockets/baileys");
 const plugins = require("./plugins");
 const { handleMessage } = require("./router");
+const { bindWelcomeEvents } = require("./welcome-events");
 
 const logger = pino({ level: process.env.LOG_LEVEL || "silent" });
 const BOT_NAME = process.env.BOT_NAME || "SIGMA MD BOT";
@@ -19,6 +19,7 @@ async function startBot() {
     markOnlineOnConnect: false, syncFullHistory: false
   });
 
+  bindWelcomeEvents(sock);
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("connection.update", async ({ connection, lastDisconnect }) => {
@@ -40,7 +41,7 @@ async function startBot() {
       }
     }
     if (connection === "open") console.log("\n✅ " + BOT_NAME + " connected. Loaded " + plugins.length + " plugins.");
-    if (connection === "close") {
+    if (connection === "close") {\n      globalThis.sigmaOwnerWelcomeSent = false;
       const code = lastDisconnect?.error?.output?.statusCode;
       const reconnect = code !== DisconnectReason.loggedOut;
       console.log("Connection closed.", reconnect ? "Reconnecting…" : "Logged out; remove auth_info_baileys and pair again.");
