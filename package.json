@@ -1,14 +1,20 @@
 {
   "name": "sigma-md-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Modular WhatsApp bot starter for Termux with phone pairing code and safe local lab",
+  "description": "Modular WhatsApp bot with pairing code, media tools, group welcome and GitHub bug reports",
   "main": "src/index.js",
-  "scripts": { "start": "node src/index.js", "lab": "node lab/local-lab.js" },
-  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/index.js",
+    "lab": "node lab/local-lab.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.18",
     "dotenv": "^16.4.7",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "node-gtts": "^2.0.2"
   }
 }
